@@ -61,13 +61,11 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="5" x="0.4879000780640125" y="0.5128205128205128" uiLastX_Normal="704"
-          uiLastY_Normal="161" uiopen_Normal="0" uiLastX_Programs="388"
-          uiLastY_Programs="88" uiopen_Programs="0" uiLastX_IO="282" uiLastY_IO="21"
-          uiopen_IO="0">
+  <FILTER uid="8" x="0.5105386416861827" y="0.4304029304029304" uiLastX_Normal="395"
+          uiLastY_Normal="231" uiopen_Normal="0">
     <PLUGIN name="atonalSynth" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\tbgoo\Desktop\software\projects\atonalSynth\atonalSynth\Builds\VisualStudio2022\x64\Debug\VST3\atonalSynth.vst3"
-            uniqueId="f5aadae6" isInstrument="0" fileTime="17e3fa8f498" infoUpdateTime="17e3fd5557c"
+            uniqueId="f5aadae6" isInstrument="0" fileTime="17e4002fc60" infoUpdateTime="17e407933fa"
             numInputs="2" numOutputs="2" isShell="0" uid="e954fb9b"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -79,8 +77,8 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <CONNECTION srcFilter="1" srcChannel="0" dstFilter="5" dstChannel="0"/>
-  <CONNECTION srcFilter="1" srcChannel="0" dstFilter="5" dstChannel="1"/>
-  <CONNECTION srcFilter="5" srcChannel="0" dstFilter="3" dstChannel="0"/>
-  <CONNECTION srcFilter="5" srcChannel="1" dstFilter="3" dstChannel="1"/>
+  <CONNECTION srcFilter="1" srcChannel="0" dstFilter="8" dstChannel="0"/>
+  <CONNECTION srcFilter="1" srcChannel="0" dstFilter="8" dstChannel="1"/>
+  <CONNECTION srcFilter="8" srcChannel="0" dstFilter="3" dstChannel="0"/>
+  <CONNECTION srcFilter="8" srcChannel="1" dstFilter="3" dstChannel="1"/>
 </FILTERGRAPH>
