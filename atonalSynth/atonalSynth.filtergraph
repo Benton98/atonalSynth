@@ -12,7 +12,7 @@
         <BUS index="0" layout="disabled"/>
       </INPUTS>
       <OUTPUTS>
-        <BUS index="0" layout="L R Ls Rs"/>
+        <BUS index="0" layout="L R"/>
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
@@ -34,7 +34,7 @@
   <FILTER uid="3" x="0.5" y="0.9">
     <PLUGIN name="Audio Output" descriptiveName="" format="Internal" category="I/O devices"
             manufacturer="JUCE" version="1.0" file="" uniqueId="724248cb"
-            isInstrument="0" fileTime="0" infoUpdateTime="0" numInputs="4"
+            isInstrument="0" fileTime="0" infoUpdateTime="0" numInputs="2"
             numOutputs="0" isShell="0" uid="724248cb"/>
     <STATE>0.</STATE>
     <LAYOUT>
@@ -61,10 +61,13 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="5" x="0.26" y="0.3225806451612903">
+  <FILTER uid="5" x="0.4879000780640125" y="0.5128205128205128" uiLastX_Normal="704"
+          uiLastY_Normal="161" uiopen_Normal="0" uiLastX_Programs="388"
+          uiLastY_Programs="88" uiopen_Programs="0" uiLastX_IO="282" uiLastY_IO="21"
+          uiopen_IO="0">
     <PLUGIN name="atonalSynth" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\tbgoo\Desktop\software\projects\atonalSynth\atonalSynth\Builds\VisualStudio2022\x64\Debug\VST3\atonalSynth.vst3"
-            uniqueId="f5aadae6" isInstrument="0" fileTime="17e35dde3a3" infoUpdateTime="17e35f2dcbe"
+            uniqueId="f5aadae6" isInstrument="0" fileTime="17e3fa8f498" infoUpdateTime="17e3fd5557c"
             numInputs="2" numOutputs="2" isShell="0" uid="e954fb9b"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -76,4 +79,8 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
+  <CONNECTION srcFilter="1" srcChannel="0" dstFilter="5" dstChannel="0"/>
+  <CONNECTION srcFilter="1" srcChannel="0" dstFilter="5" dstChannel="1"/>
+  <CONNECTION srcFilter="5" srcChannel="0" dstFilter="3" dstChannel="0"/>
+  <CONNECTION srcFilter="5" srcChannel="1" dstFilter="3" dstChannel="1"/>
 </FILTERGRAPH>
