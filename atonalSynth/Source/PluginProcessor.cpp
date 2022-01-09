@@ -91,7 +91,7 @@ void AtonalSynthAudioProcessor::changeProgramName (int index, const juce::String
 }
 
 //==============================================================================
-void AtonalSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void AtonalSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -106,14 +106,20 @@ void AtonalSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     leftChain.prepare(spec);
     rightChain.prepare(spec);
 
+    
+    
     auto chainSettings = getChainSettings(apvts);
+    
 
-    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, chainSettings.peakFreq, chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate,
+                                                                                chainSettings.peakFreq,
+                                                                                chainSettings.peakQuality,
+                                                                                juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+
+    // this could be a problem allocates on the heap in an audio callback
 
     *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
     *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
-
 
 }
 
@@ -164,13 +170,14 @@ void AtonalSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-
     auto chainSettings = getChainSettings(apvts);
 
     auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
                                                                                 chainSettings.peakFreq,
                                                                                 chainSettings.peakQuality,
-                                                                                juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+                                                                                juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));  
+    
+    // this could be a problem allocates on the heap in an audio callback
 
     *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
     *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
@@ -181,12 +188,8 @@ void AtonalSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto leftBlock = block.getSingleChannelBlock(0);
     auto rightBlock = block.getSingleChannelBlock(1);
 
-    juce::dsp::ProcessContextReplacing<float> leftContex(leftBlock);
-    juce::dsp::ProcessContextReplacing<float> rightContex(rightBlock);
-
-    leftChain.process(leftContex);
-    rightChain.process(rightContex);
-    
+    juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
+    juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
 }
 
 //==============================================================================
@@ -224,12 +227,10 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
     settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq")->load();
     settings.peakFreq = apvts.getRawParameterValue("Peak Freq")->load();
     settings.peakGainInDecibles = apvts.getRawParameterValue("Peak Gain")->load();
-    settings.peakQuality = apvts.getRawParameterValue("Peak Quality")->load();
     settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope")->load();
     settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope")->load();
 
     return settings;
-    
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout 
@@ -241,11 +242,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout
     
     layout.add(std::make_unique<juce::AudioParameterFloat>("LowCut Freq",
                                                            "LowCut Freq",
-                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f), 
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
                                                            20.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("HighCut Freq",
                                                            "HighCut Freq",
-                                                            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+                                                            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f),
                                                             20000.f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Freq",
@@ -271,8 +272,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         stringArray.add(str);
     }
 
-    layout.add(std::make_unique < juce::AudioParameterChoice>("Lowcut Slope", "Lowcut Slope", stringArray, 0));
-    layout.add(std::make_unique < juce::AudioParameterChoice>("Highcut Slope", "Highcut Slope", stringArray, 0));
+    layout.add(std::make_unique < juce::AudioParameterChoice>("LowCut Slope", "LowCut Slope", stringArray, 0));
+    layout.add(std::make_unique < juce::AudioParameterChoice>("HighCut Slope", "HighCut Slope", stringArray, 0));
 
     return layout;
 }
