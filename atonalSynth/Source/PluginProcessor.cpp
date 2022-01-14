@@ -9,7 +9,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include <windows.h>
-
+#include <iostream>
 
 
 //==============================================================================
@@ -100,6 +100,7 @@ void AtonalSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
     // initialisation that you need..
     juce::dsp::ProcessSpec spec;
 
+
     spec.maximumBlockSize = samplesPerBlock;
 
     spec.numChannels = 1;
@@ -109,7 +110,9 @@ void AtonalSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
     leftChain.prepare(spec);
     rightChain.prepare(spec);
 
-    updateFilters();
+    double peakFreq = 750.0;
+
+    updateFilters(peakFreq);
 
 }
 
@@ -151,16 +154,22 @@ void AtonalSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+
+
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    updateFilters();
+
+    for (const auto metadata : midiMessages)
+    {
+        auto message = metadata.getMessage();
+        
+        if (message.isNoteOn())
+        {
+            updateFilters(message.getMidiNoteInHertz(message.getNoteNumber()));
+        }
+
+    }
 
     juce::dsp::AudioBlock<float> block(buffer);
 
@@ -172,6 +181,7 @@ void AtonalSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 
     leftChain.process(leftContext);
     rightChain.process(rightContext);
+
 }
 
 //==============================================================================
@@ -201,13 +211,13 @@ void AtonalSynthAudioProcessor::setStateInformation (const void* data, int sizeI
 }
 
 
-ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts, double peakFreq)
 {
     ChainSettings settings;
 
     settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq")->load();
     settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq")->load();
-    settings.peakFreq = apvts.getRawParameterValue("Peak Freq")->load();
+    settings.peakFreq = peakFreq;
     settings.peakGainInDecibles = apvts.getRawParameterValue("Peak Gain")->load();
     settings.lowCutSlope = static_cast<Slope>  (apvts.getRawParameterValue("LowCut Slope")->load());
     settings.highCutSlope = static_cast<Slope> (apvts.getRawParameterValue("HighCut Slope")->load());
@@ -265,9 +275,9 @@ void AtonalSynthAudioProcessor::updateHighCutFilters(const ChainSettings& chainS
 
 }
 
-void AtonalSynthAudioProcessor::updateFilters()
+void AtonalSynthAudioProcessor::updateFilters(double peakFreq)
 {
-    auto chainSettings = getChainSettings(apvts);
+    auto chainSettings = getChainSettings(apvts, peakFreq);
 
     updateLowCutFilters(chainSettings);
     updatePeakFilter(chainSettings);
@@ -302,7 +312,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Quality",
                                                            "Peak Quality",
-                                                           juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+                                                           juce::NormalisableRange<float>(0.1f, 20.f, 0.05f, 1.f),
                                                            1.f));
 
     juce::StringArray stringArray;

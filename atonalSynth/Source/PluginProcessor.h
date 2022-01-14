@@ -26,7 +26,7 @@ struct ChainSettings
     Slope lowCutSlope{ Slope::Slope_12 }, highCutSlope{ Slope::Slope_12 };
 };
 
-ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts, double peakFreq);
 
 
 //==============================================================================
@@ -83,9 +83,13 @@ private:
 
     using Filter = juce::dsp::IIR::Filter<float>;
 
+    using peakFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+
     using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
 
     using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+
+    using MonoChain2 = juce::dsp::ProcessorChain<CutFilter, peakFilter, CutFilter>;
 
     MonoChain leftChain, rightChain;
 
@@ -144,7 +148,8 @@ private:
     void updateHighCutFilters(const ChainSettings& chainSettings);
 
 
-    void updateFilters();
+    void updateFilters(double peakFreq);
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AtonalSynthAudioProcessor)
 };
