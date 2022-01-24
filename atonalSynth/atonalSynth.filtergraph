@@ -61,13 +61,13 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="8" x="0.5098360655737705" y="0.25" uiLastX_Normal="395"
-          uiLastY_Normal="231" uiopen_Normal="0">
+  <FILTER uid="12" x="0.4901639344262295" y="0.4929245283018868" uiLastX_Normal="573"
+          uiLastY_Normal="254" uiopen_Normal="0">
     <PLUGIN name="atonalSynth" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="C:\Users\tbgoo\Desktop\software\projects\atonalSynth\atonalSynth\Builds\VisualStudio2022\x64\Debug\VST3\atonalSynth.vst3"
-            uniqueId="f5aadae6" isInstrument="0" fileTime="17e591a5532" infoUpdateTime="17e596601e3"
+            uniqueId="f5aadae6" isInstrument="0" fileTime="17e8da1596d" infoUpdateTime="17e8da1cb1e"
             numInputs="2" numOutputs="2" isShell="0" uid="e954fb9b"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+    <STATE>623.VMjLgXl....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9LCNy3BTEwlXmAiUYoWUrIVdA4hKAIlKTETRUAUSAAkKBolQY4BQlMTQlQkVscVLPASTGgjQIcUV2EjYic1cVM1ZAAkKIAkKt3hKt3hKlMidtDjKTETRUAUSAAkKBolQY4BQ1MTQlQkVscVLPASTGgzT2ESX1UkQtDSQFEFLUYjKAolKA4hKt3hKt3hKt3hKt.UQpQUPvPjKAgDTZoVPP4RST4xT0MlLPASTGgjQIcUV2EjYic1cVM1ZAAkKIAkKt3hKt3hKt3RStDjKTETRUAUSAAkKBolQY4BQlMTQ1oWXxzDUioWP3Qkb3XjXqEjYic1cVM1ZAAkKIAkKt3hKt3hKt3hKt3hKTETRUAUSAAkKBolQY4BQ1ITQtTUVmMmQHYTRWk0cAY1XmcmUisVPP4RRP4hKt3hKt3hKxblKA4BUAkTUP0TPP4hPpYTVtPjcBUjKUk0YyYDRGUjUZQWPlM1Y2Y0XqEDTtjDTt3hKt3hKt3hKt3hKtPUPIUETMEDTtHjZFkkKDY1PE4RUYc1bFgTTUcEVxslQiQSPlM1Y2Y0XqEDTtjDTt3hKt3hKt3hK2rhKt3hKt3hKt3hKt3haTU0PUQDU3sFaicVTWkEQEYzXmEDTtDDRTQlcEEiX4EDTtDDSt3xXt3hKt3hKt3hKlIUUMQUTPkzUZESQFM1ZQQEV5UjQ77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
       <INPUTS>
         <BUS index="0" layout="L R"/>
@@ -77,66 +77,24 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="10" x="0.5229508196721312" y="0.375" uiLastX_Normal="113"
-          uiLastY_Normal="193" uiopen_Normal="0">
-    <PLUGIN name="atonalSynth" format="VST3" category="Fx" manufacturer="yourcompany"
-            version="1.0.0" file="C:\Users\tbgoo\Desktop\software\projects\atonalSynth\atonalSynth\Builds\VisualStudio2022\x64\Debug\VST3\atonalSynth.vst3"
-            uniqueId="f5aadae6" isInstrument="0" fileTime="17e591a5532" infoUpdateTime="17e596601e4"
-            numInputs="2" numOutputs="2" isShell="0" uid="e954fb9b"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+  <FILTER uid="13" x="0.44" y="0.2883064516129032" uiLastX_Normal="356"
+          uiLastY_Normal="92" uiopen_Normal="0">
+    <PLUGIN name="SamplerPlugin" format="Internal" category="Synth" manufacturer="JUCE"
+            version="1.0.0" file="SamplerPlugin" uniqueId="2a34a53b" isInstrument="1"
+            fileTime="0" infoUpdateTime="0" numInputs="0" numOutputs="2"
+            isShell="0" uid="2a34a53b"/>
+    <STATE>0.</STATE>
     <LAYOUT>
-      <INPUTS>
-        <BUS index="0" layout="L R"/>
-      </INPUTS>
+      <INPUTS/>
       <OUTPUTS>
         <BUS index="0" layout="L R"/>
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="11" x="0.521311475409836" y="0.5283018867924528" uiLastX_Normal="194"
-          uiLastY_Normal="214" uiopen_Normal="0">
-    <PLUGIN name="atonalSynth" format="VST3" category="Fx" manufacturer="yourcompany"
-            version="1.0.0" file="C:\Users\tbgoo\Desktop\software\projects\atonalSynth\atonalSynth\Builds\VisualStudio2022\x64\Debug\VST3\atonalSynth.vst3"
-            uniqueId="f5aadae6" isInstrument="0" fileTime="17e591a5532" infoUpdateTime="17e596601e4"
-            numInputs="2" numOutputs="2" isShell="0" uid="e954fb9b"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
-    <LAYOUT>
-      <INPUTS>
-        <BUS index="0" layout="L R"/>
-      </INPUTS>
-      <OUTPUTS>
-        <BUS index="0" layout="L R"/>
-      </OUTPUTS>
-    </LAYOUT>
-  </FILTER>
-  <FILTER uid="12" x="0.5163934426229508" y="0.6627358490566038" uiLastX_Normal="188"
-          uiLastY_Normal="244" uiopen_Normal="0">
-    <PLUGIN name="atonalSynth" format="VST3" category="Fx" manufacturer="yourcompany"
-            version="1.0.0" file="C:\Users\tbgoo\Desktop\software\projects\atonalSynth\atonalSynth\Builds\VisualStudio2022\x64\Debug\VST3\atonalSynth.vst3"
-            uniqueId="f5aadae6" isInstrument="0" fileTime="17e591a5532" infoUpdateTime="17e596601e4"
-            numInputs="2" numOutputs="2" isShell="0" uid="e954fb9b"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
-    <LAYOUT>
-      <INPUTS>
-        <BUS index="0" layout="L R"/>
-      </INPUTS>
-      <OUTPUTS>
-        <BUS index="0" layout="L R"/>
-      </OUTPUTS>
-    </LAYOUT>
-  </FILTER>
-  <CONNECTION srcFilter="1" srcChannel="0" dstFilter="8" dstChannel="0"/>
-  <CONNECTION srcFilter="1" srcChannel="1" dstFilter="8" dstChannel="1"/>
-  <CONNECTION srcFilter="2" srcChannel="4096" dstFilter="8" dstChannel="4096"/>
-  <CONNECTION srcFilter="2" srcChannel="4096" dstFilter="10" dstChannel="4096"/>
-  <CONNECTION srcFilter="2" srcChannel="4096" dstFilter="11" dstChannel="4096"/>
   <CONNECTION srcFilter="2" srcChannel="4096" dstFilter="12" dstChannel="4096"/>
-  <CONNECTION srcFilter="8" srcChannel="0" dstFilter="10" dstChannel="0"/>
-  <CONNECTION srcFilter="8" srcChannel="1" dstFilter="10" dstChannel="1"/>
-  <CONNECTION srcFilter="10" srcChannel="0" dstFilter="11" dstChannel="0"/>
-  <CONNECTION srcFilter="10" srcChannel="1" dstFilter="11" dstChannel="1"/>
-  <CONNECTION srcFilter="11" srcChannel="0" dstFilter="12" dstChannel="0"/>
-  <CONNECTION srcFilter="11" srcChannel="1" dstFilter="12" dstChannel="1"/>
+  <CONNECTION srcFilter="2" srcChannel="4096" dstFilter="13" dstChannel="4096"/>
   <CONNECTION srcFilter="12" srcChannel="0" dstFilter="3" dstChannel="0"/>
   <CONNECTION srcFilter="12" srcChannel="1" dstFilter="3" dstChannel="1"/>
+  <CONNECTION srcFilter="13" srcChannel="0" dstFilter="12" dstChannel="0"/>
+  <CONNECTION srcFilter="13" srcChannel="1" dstFilter="12" dstChannel="1"/>
 </FILTERGRAPH>
