@@ -11,8 +11,22 @@
 
 
 //==============================================================================
+
+
 AtonalSynthAudioProcessorEditor::AtonalSynthAudioProcessorEditor (AtonalSynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p),
+    peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
+    peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
+    peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
+    dipQualitySliderAttachment(audioProcessor.apvts, "Dip Quality", dipQualitySlider),
+    dipFreqSliderAttachment(audioProcessor.apvts, "Dip Freq", dipFreqSlider),
+    dipGainSliderAttachment(audioProcessor.apvts, "Dip Gain", dipGainSlider),
+    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
+    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider),
+    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
+    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider)
+    
+
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -48,14 +62,19 @@ void AtonalSynthAudioProcessorEditor::resized()
     auto bounds = getLocalBounds();
     auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.33);
 
-    auto lowCutArea = bounds.removeFromLeft(bounds.getWidth() * 0.33);
-    auto highCutArea = bounds.removeFromRight(bounds.getWidth() * 0.5);
+    auto lowCutArea = bounds.removeFromLeft(bounds.getWidth() * 0.25);
+    auto highCutArea = bounds.removeFromRight(bounds.getWidth() * 0.33);
+    auto dipArea = bounds.removeFromLeft(bounds.getWidth() * .5);
 
     lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(bounds.getHeight() * 0.5));
     lowCutSlopeSlider.setBounds(lowCutArea);
 
     highCutFreqSlider.setBounds(highCutArea.removeFromTop(bounds.getHeight() * 0.5));
     highCutSlopeSlider.setBounds(highCutArea);
+
+    dipFreqSlider.setBounds(dipArea.removeFromTop(dipArea.getHeight() * 0.33));
+    dipGainSlider.setBounds(dipArea.removeFromTop(dipArea.getHeight() * 0.5));
+    dipQualitySlider.setBounds(dipArea);
 
     peakFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.33));
     peakGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5));
@@ -69,10 +88,15 @@ std::vector<juce::Component*> AtonalSynthAudioProcessorEditor::getComps() {
         &peakFreqSlider,
         &peakGainSlider,
         &peakQualitySlider,
+        &dipFreqSlider,
+        &dipGainSlider,
+        &dipQualitySlider,
         &lowCutFreqSlider,
         &highCutFreqSlider,
         &lowCutSlopeSlider,
         &highCutSlopeSlider
+
+
     };
 
 }
