@@ -2,9 +2,10 @@
 
 <JUCERPROJECT id="hVI1uj" name="atonalSynth" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
-              cppLanguageStandard="17" pluginVST3Category="Fx" pluginCharacteristicsValue="pluginWantsMidiIn">
+              cppLanguageStandard="17" pluginCharacteristicsValue="pluginWantsMidiIn">
   <MAINGROUP id="LVmRA6" name="atonalSynth">
     <GROUP id="{01FAE888-A378-C85E-429D-3D294CE258ED}" name="Source">
+      <FILE id="rK8rK5" name="midiProcessor.h" compile="0" resource="0" file="Source/midiProcessor.h"/>
       <FILE id="WGXFA3" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="QxHMfz" name="PluginProcessor.h" compile="0" resource="0"

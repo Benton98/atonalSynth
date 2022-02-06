@@ -153,6 +153,19 @@ private:
 
     void updateFilters();
 
+
+    juce::AudioDeviceManager deviceManager;           // [1]
+    juce::ComboBox midiInputList;                     // [2]
+    juce::Label midiInputListLabel;
+    int lastInputIndex = 0;                           // [3]
+    bool isAddingFromMidiInput = false;               // [4]
+
+    juce::MidiKeyboardState keyboardState;            // [5]
+    juce::MidiKeyboardComponent keyboardComponent;    // [6]
+
+    juce::TextEditor midiMessagesBox;
+    double startTime;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AtonalSynthAudioProcessor)
 };
