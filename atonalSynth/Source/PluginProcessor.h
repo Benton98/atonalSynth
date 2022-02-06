@@ -9,7 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-
+#include"midiProcessor.h"
 
 enum Slope
 {
@@ -21,13 +21,13 @@ enum Slope
 
 struct ChainSettings
 {
-    float peakFreq {0}, peakGainInDecibles {0}, peakQuality {1.f};
     float dipFreq{ 0 }, dipGainInDecibles{ 0 }, dipQuality{ 1.f };
+    float peakFreq {0}, peakGainInDecibles {0}, peakQuality {1.f};
     float lowCutFreq { 0 }, highCutFreq { 0 };
     Slope lowCutSlope{ Slope::Slope_12 }, highCutSlope{ Slope::Slope_12 };
 };
 
-ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts, double peakFreq);
 
 
 //==============================================================================
@@ -56,7 +56,6 @@ public:
 
     //==============================================================================
     const juce::String getName() const override;
-
     bool acceptsMidi() const override;
     bool producesMidi() const override;
     bool isMidiEffect() const override;
@@ -82,15 +81,17 @@ public:
 
 private:
 
+    MidiProcessor midiProcessor;
+
     using Filter = juce::dsp::IIR::Filter<float>;
 
     using peakFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter>;
-
+    
     using dipFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter, Filter>;
 
     using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
 
-    using MonoChain = juce::dsp::ProcessorChain<CutFilter, dipFilter, peakFilter, CutFilter>;
+    using MonoChain = juce::dsp::ProcessorChain<CutFilter,dipFilter, peakFilter, CutFilter>;
 
     MonoChain leftChain, rightChain;
 
@@ -153,7 +154,6 @@ private:
 
     void updateFilters();
 
-
     juce::AudioDeviceManager deviceManager;           // [1]
     juce::ComboBox midiInputList;                     // [2]
     juce::Label midiInputListLabel;
@@ -161,7 +161,6 @@ private:
     bool isAddingFromMidiInput = false;               // [4]
 
     juce::MidiKeyboardState keyboardState;            // [5]
-    juce::MidiKeyboardComponent keyboardComponent;    // [6]
 
     juce::TextEditor midiMessagesBox;
     double startTime;
