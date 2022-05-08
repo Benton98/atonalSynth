@@ -15,11 +15,12 @@
 struct CustomRotarySlider : juce::Slider
 {
     CustomRotarySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
-        juce::Slider::TextEntryBoxPosition::NoTextBox)
+        juce::Slider::TextEntryBoxPosition::TextBoxBelow)
     {
 
     }
 };
+
 
 //==============================================================================
 /**
@@ -49,6 +50,17 @@ private:
         highCutFreqSlider,
         lowCutSlopeSlider,
         highCutSlopeSlider;
+
+    juce::Label peakFreqLabel,
+        peakGainLabel,
+        peakQualityLabel,
+        dipGainLabel,
+        dipQualityLabel,
+        dipFreqLabel,
+        lowCutFreqLabel,
+        highCutFreqLabel,
+        lowCutSlopeLabel,
+        highCutSlopeLabel;
 
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;

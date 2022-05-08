@@ -31,8 +31,55 @@ AtonalSynthAudioProcessorEditor::AtonalSynthAudioProcessorEditor (AtonalSynthAud
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
+    // Display
+
+    //peakFreqSlider.setRange(20.0f, 20480.0f);
+    peakFreqLabel.setText("Peak Freq", juce::NotificationType::dontSendNotification);
+    peakFreqLabel.setJustificationType(juce::Justification::centredTop);
+    peakFreqLabel.attachToComponent(&peakFreqSlider,false);
+
+    /*
+    peakGainLabel.setText("Peak Gain", juce::NotificationType::dontSendNotification);
+    peakGainLabel.setJustificationType(juce::Justification::bottom);
+    peakGainLabel.attachToComponent(&peakGainSlider, false);
+    */
+    /*
+    peakQualityLabel.setText("Peak Quality", juce::NotificationType::dontSendNotification);
+    peakQualityLabel.setJustificationType(juce::Justification::centredTop);
+    peakQualityLabel.attachToComponent(&peakQualitySlider, false);
+
+    dipGainLabel.setText("Dip Gain", juce::NotificationType::dontSendNotification);
+    dipGainLabel.setJustificationType(juce::Justification::centredTop);
+    dipGainLabel.attachToComponent(&dipGainSlider, false);
+    
+    dipQualityLabel.setText("Dip Freq", juce::NotificationType::dontSendNotification);
+    dipQualityLabel.setJustificationType(juce::Justification::centredTop);
+    dipQualityLabel.attachToComponent(&dipQualitySlider, false);
+    */
+    dipFreqLabel.setText("Dip Freq", juce::NotificationType::dontSendNotification);
+    dipFreqLabel.setJustificationType(juce::Justification::centredTop);
+    dipFreqLabel.attachToComponent(&dipFreqSlider, false);
+    /*
+    lowCutFreqLabel.setText("HPF", juce::NotificationType::dontSendNotification);
+    lowCutFreqLabel.setJustificationType(juce::Justification::centredTop);
+    lowCutFreqLabel.attachToComponent(&lowCutFreqLabel, false);
+
+    highCutFreqLabel.setText("LPF", juce::NotificationType::dontSendNotification);
+    highCutFreqLabel.setJustificationType(juce::Justification::centredTop);
+    highCutFreqLabel.attachToComponent(&highCutFreqLabel, false);
+
+    lowCutSlopeLabel.setText("HPF Slope", juce::NotificationType::dontSendNotification);
+    lowCutSlopeLabel.setJustificationType(juce::Justification::centredTop);
+    lowCutSlopeLabel.attachToComponent(&lowCutSlopeLabel, false);
+
+    highCutSlopeLabel.setText("LPF Slope", juce::NotificationType::dontSendNotification);
+    highCutSlopeLabel.setJustificationType(juce::Justification::centredTop);
+    highCutSlopeLabel.attachToComponent(&highCutSlopeLabel, false);
+    */
+
     for (auto* comp : getComps())
     {
+
         addAndMakeVisible(comp);
     }
 
@@ -51,7 +98,8 @@ void AtonalSynthAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    g.drawFittedText ("", getLocalBounds(), juce::Justification::centred, 1);
+    
 }
 
 void AtonalSynthAudioProcessorEditor::resized()
@@ -79,10 +127,13 @@ void AtonalSynthAudioProcessorEditor::resized()
     peakFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.33));
     peakGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5));
     peakQualitySlider.setBounds(bounds);
+    
+    peakFreqSlider.setSkewFactorFromMidPoint(1024.0);;
 
 }
 
 std::vector<juce::Component*> AtonalSynthAudioProcessorEditor::getComps() {
+
     return
     {
         &peakFreqSlider,
@@ -95,7 +146,6 @@ std::vector<juce::Component*> AtonalSynthAudioProcessorEditor::getComps() {
         &highCutFreqSlider,
         &lowCutSlopeSlider,
         &highCutSlopeSlider
-
 
     };
 

@@ -11,8 +11,6 @@
 #include <windows.h>
 #include <iostream>
 
-float peakFreq = 0;
-
 //==============================================================================
 AtonalSynthAudioProcessor::AtonalSynthAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -94,12 +92,15 @@ void AtonalSynthAudioProcessor::changeProgramName (int index, const juce::String
 {
 }
 
+
+
 //==============================================================================
 void AtonalSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::dsp::ProcessSpec spec;
+
 
 
     spec.maximumBlockSize = samplesPerBlock;
@@ -162,17 +163,9 @@ void AtonalSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         buffer.clear (i, 0, buffer.getNumSamples());
 
 
-    for (const auto metadata : midiMessages)
-    {
-        auto message = metadata.getMessage();
-        
-        if (message.isNoteOn())
-        {
-            peakFreq = message.getMidiNoteInHertz(message.getNoteNumber());
-            updateFilters();
-        }
 
-    }
+   updateFilters();
+    
 
     juce::dsp::AudioBlock<float> block(buffer);
 
@@ -195,8 +188,8 @@ bool AtonalSynthAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AtonalSynthAudioProcessor::createEditor()
 {
-    //return new AtonalSynthAudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new AtonalSynthAudioProcessorEditor (*this);
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -205,28 +198,40 @@ void AtonalSynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+
+    juce::MemoryOutputStream mos(destData, true);
+    apvts.state.writeToStream(mos);
 }
 
 void AtonalSynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if (tree.isValid())
+    {
+        apvts.replaceState(tree);
+        updateFilters();
+    }
 }
 
 
-ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts, double peakFreq)
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
 {
     ChainSettings settings;
+    float peakFreq = apvts.getRawParameterValue("Peak Freq")->load();
 
-    settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq")->load();
-    settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq")->load();
+
+    settings.lowCutFreq =   peakFreq / 2;
+    settings.highCutFreq = peakFreq * 10;
     settings.peakFreq = peakFreq;
     settings.peakGainInDecibles = apvts.getRawParameterValue("Peak Gain")->load();
     settings.peakQuality = apvts.getRawParameterValue("Peak Quality")->load();
     settings.dipQuality = apvts.getRawParameterValue("Dip Quality")->load();
+    settings.dipFreq = peakFreq;
     settings.dipGainInDecibles = apvts.getRawParameterValue("Dip Gain")->load();
-    settings.lowCutSlope = static_cast<Slope>  (peakFreq / 2);
-    settings.highCutSlope = static_cast<Slope> (peakFreq * 12);
+    settings.lowCutSlope = static_cast<Slope> (apvts.getRawParameterValue("LowCut Slope")->load());
+    settings.highCutSlope = static_cast<Slope> (apvts.getRawParameterValue("HighCut Slope")->load());
 
     return settings;
 }
@@ -234,331 +239,316 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts, double
 
 void AtonalSynthAudioProcessor::updateDipFilter(const ChainSettings& chainSettings)
 {
+    float dipGain = chainSettings.dipGainInDecibles;
+    float dipFreq = chainSettings.peakFreq * 1.5;
 
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
 
     auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 1.5,
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
 
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<0>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<0>().coefficients, dipCoefficients);
 
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 2.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<1>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<1>().coefficients, dipCoefficients);
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 3.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<2>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<2>().coefficients, dipCoefficients);
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 4.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<3>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<3>().coefficients, dipCoefficients);
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 5.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<4>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<4>().coefficients, dipCoefficients);
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 6.5,
+    
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<5>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<5>().coefficients, dipCoefficients);
 
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 7.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<6>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<6>().coefficients, dipCoefficients);
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 8.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<7>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<7>().coefficients, dipCoefficients);
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 9.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<8>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<8>().coefficients, dipCoefficients);
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 10.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<9>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<9>().coefficients, dipCoefficients);
 
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 11.5,
+    if (dipFreq > 20000) {
+        dipGain = 0;
+    }
+
+    auto dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        dipFreq,
         chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
+        juce::Decibels::decibelsToGain(dipGain));
+
+    dipFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Dip>().get<10>().coefficients, dipCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Dip>().get<10>().coefficients, dipCoefficients);
+    
 
-
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 12.5,
-        chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Dip>().get<11>().coefficients, dipCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Dip>().get<11>().coefficients, dipCoefficients);
-
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 13.5,
-        chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Dip>().get<12>().coefficients, dipCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Dip>().get<12>().coefficients, dipCoefficients);
-
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 14.5,
-        chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Dip>().get<13>().coefficients, dipCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Dip>().get<13>().coefficients, dipCoefficients);
-
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 15.5,
-        chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Dip>().get<15>().coefficients, dipCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Dip>().get<15>().coefficients, dipCoefficients);
-
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 16.5,
-        chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Dip>().get<16>().coefficients, dipCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Dip>().get<16>().coefficients, dipCoefficients);
-
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 17.5,
-        chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Dip>().get<17>().coefficients, dipCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Dip>().get<17>().coefficients, dipCoefficients);
-
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 18.5,
-        chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Dip>().get<18>().coefficients, dipCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Dip>().get<18>().coefficients, dipCoefficients);
-
-    dipCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.dipFreq * 19.5,
-        chainSettings.dipQuality,
-        juce::Decibels::decibelsToGain(chainSettings.dipGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Dip>().get<19>().coefficients, dipCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Dip>().get<19>().coefficients, dipCoefficients);
 }
 
 void AtonalSynthAudioProcessor::updatePeakFilter(const ChainSettings& chainSettings)
 {
 
-    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+    float peakGain = chainSettings.peakGainInDecibles;
+    float peakFreq = chainSettings.peakFreq;
 
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
+        chainSettings.peakQuality,
+        juce::Decibels::decibelsToGain(peakGain));
+    
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<0>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<0>().coefficients, peakCoefficients);
 
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 2,
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<1>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<1>().coefficients, peakCoefficients);
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 3,
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<2>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<2>().coefficients, peakCoefficients);
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 4,
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<3>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<3>().coefficients, peakCoefficients);
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 5,
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<4>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<4>().coefficients, peakCoefficients);
+    
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 6,
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<5>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<5>().coefficients, peakCoefficients);
 
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 7,
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<6>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<6>().coefficients, peakCoefficients);
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 8,
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<7>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<7>().coefficients, peakCoefficients);
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 9,
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<8>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<8>().coefficients, peakCoefficients);
 
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 10,
+    if (peakFreq > 20000) {
+        peakGain = 0;
+    }
+
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+        peakFreq,
         chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
+        juce::Decibels::decibelsToGain(peakGain));
+
+    peakFreq += chainSettings.peakFreq;
 
     updateCoefficients(leftChain.get<ChainPositions::Peak>().get<9>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().get<9>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 11,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<10>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<10>().coefficients, peakCoefficients);
-
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 12,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<11>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<11>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 13,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<12>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<12>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 14,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<13>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<13>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 15,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<14>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<14>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 16,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<15>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<15>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 17,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<16>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<16>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 18,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<17>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<17>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 19,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<18>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<18>().coefficients, peakCoefficients);
-
-    peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-        chainSettings.peakFreq * 20,
-        chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibles));
-
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().get<19>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().get<19>().coefficients, peakCoefficients);
 
 }
 
@@ -570,6 +560,7 @@ void AtonalSynthAudioProcessor::updateCoefficients(Coefficients& old, const Coef
 
 void AtonalSynthAudioProcessor::updateLowCutFilters(const ChainSettings& chainSettings)
 {
+    
     auto cutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq,
         getSampleRate(),
         2 * (chainSettings.lowCutSlope + 1));
@@ -601,10 +592,11 @@ void AtonalSynthAudioProcessor::updateHighCutFilters(const ChainSettings& chainS
 
 void AtonalSynthAudioProcessor::updateFilters()
 {
-    auto chainSettings = getChainSettings(apvts, peakFreq);
+    auto chainSettings = getChainSettings(apvts);
 
     updateLowCutFilters(chainSettings);
     updatePeakFilter(chainSettings);
+    updateDipFilter(chainSettings);
     updateHighCutFilters(chainSettings);
 }
 
@@ -631,13 +623,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Gain",
                                                            "Peak Gain",
-                                                           juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
-                                                           0.0f));
+                                                           juce::NormalisableRange<float>(-30.f, 30.f, 0.5f, 1.f),
+                                                           10.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Quality",
                                                            "Peak Quality",
-                                                           juce::NormalisableRange<float>(0.1f, 20.f, 0.05f, 1.f),
-                                                           1.f));
+                                                           juce::NormalisableRange<float>(1.f, 18.f, 0.1f, 1.f),
+                                                           8.f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Dip Freq",
                                                             "Dip Freq",
@@ -646,13 +638,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Dip Gain",
                                                             "Dip Gain",
-                                                            juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
+                                                            juce::NormalisableRange<float>(-30.f, 30.f, 0.5f, 1.f),
                                                             -10.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Dip Quality",
                                                             "Dip Quality",
-                                                            juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-                                                            10.f));
+                                                            juce::NormalisableRange<float>(1.f, 18.f, 0.1f, 1.f),
+                                                            8.f));
 
     juce::StringArray stringArray;
     for (int i = 0; i < 4; ++i) {
