@@ -1,2 +1,8 @@
 # atonalSynth
-Repository for developing the atonal synth software
+Musical synthesis plugin written in C++ using the JUCE framework. This plugin is designed to create pitched instruments out of atonal samples of noise.
+
+# How To Use
+This project can be built with the C++ 14 and the JUCE library. It is highly reccomended to build this project using the projucer project manager with either XCode or Visual Studio. This plugin can be exported as a VST3 file and used with most modern Digital Audio Workstations.
+
+# Demo
+This the when the peak frequency knob in the plugin is properly key tracked, we are able to create pitched instruments out of just about any sample (footsteps, thunderstorms, etc.)
