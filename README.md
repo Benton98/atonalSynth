@@ -6,3 +6,5 @@ This project can be built with the C++ 14 and the JUCE library. It is highly rec
 
 # Demo
 This the when the peak frequency knob in the plugin is properly key tracked, we are able to create pitched instruments out of just about any sample (footsteps, thunderstorms, etc.)
+
+[![Atonal Synth Demo](https://img.youtube.com/vi/I5zWmaK62WU)](https://www.youtube.com/watch?v=I5zWmaK62WU)
